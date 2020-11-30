@@ -71,4 +71,7 @@
 
     <java-symbol type="id" name="qs_state_layer" />
 
+    <!-- Default UDFPS pressed icon -->
+    <java-symbol type="integer" name="config_udfps_pressed_color" />
+
 </resources>
