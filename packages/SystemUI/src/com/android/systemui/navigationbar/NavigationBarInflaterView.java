@@ -100,7 +100,7 @@ public class NavigationBarInflaterView extends FrameLayout implements TunerServi
     private static final String KEY_NAVIGATION_HINT =
             "lineagesystem:" + LineageSettings.System.NAVIGATION_BAR_HINT;
     private static final String OVERLAY_NAVIGATION_HIDE_HINT =
-            "com.custom.overlay.systemui.gestural.hidden";
+            "org.pixelexperience.overlay.navbar.nohint";
     private static final String GESTURE_NAVBAR_LENGTH_MODE =
             "system:" + Settings.System.GESTURE_NAVBAR_LENGTH_MODE;
     private static final String ENABLE_TASKBAR =

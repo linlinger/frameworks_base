@@ -172,6 +172,7 @@ import com.android.systemui.keyguard.ScreenLifecycle;
 import com.android.systemui.keyguard.WakefulnessLifecycle;
 import com.android.systemui.keyguard.ui.binder.LightRevealScrimViewBinder;
 import com.android.systemui.keyguard.ui.viewmodel.LightRevealScrimViewModel;
+import com.android.systemui.model.SysUiState;
 import com.android.systemui.navigationbar.NavigationBarController;
 import com.android.systemui.navigationbar.NavigationBarView;
 import com.android.systemui.notetask.NoteTaskController;
@@ -195,6 +196,7 @@ import com.android.systemui.scrim.ScrimView;
 import com.android.systemui.settings.UserTracker;
 import com.android.systemui.settings.brightness.BrightnessSliderController;
 import com.android.systemui.shade.CameraLauncher;
+import com.android.systemui.shade.NotificationPanelViewController;
 import com.android.systemui.shade.NotificationShadeWindowView;
 import com.android.systemui.shade.NotificationShadeWindowViewController;
 import com.android.systemui.shade.QuickSettingsController;
@@ -722,6 +724,8 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces,
         }
     };
 
+    private final SysUiState mSysUiState;
+
     /**
      * Public constructor for CentralSurfaces.
      *
@@ -837,6 +841,8 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces,
             UserTracker userTracker,
             Provider<FingerprintManager> fingerprintManager,
             TunerService tunerService,
+            @Main Handler refreshNavbarHandler,
+            SysUiState sysUiState
             ActivityStarter activityStarter,
             BurnInProtectionController burnInProtectionController
     ) {
@@ -938,6 +944,7 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces,
         mFingerprintManager = fingerprintManager;
         mTunerService = tunerService;
         mActivityStarter = activityStarter;
+        mSysUiState = sysUiState;
         mPulseController = new PulseControllerImpl(mContext, this,
                 mCommandQueue, mUiBgExecutor, mConfigurationController);
 
@@ -3544,6 +3551,19 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces,
             KeyboardShortcutListSearch.dismiss();
         } else {
             KeyboardShortcuts.dismiss();
+        }
+    }
+
+    @Override
+    public void setBlockedGesturalNavigation(boolean blocked) {
+        NotificationPanelViewController npvc =
+                mCentralSurfacesComponent.getNotificationPanelViewController();
+        if (npvc != null) {
+            npvc.setBlockedGesturalNavigation(blocked);
+            npvc.updateSystemUiStateFlags();
+        }
+        if (getNavigationBarView() != null) {
+            getNavigationBarView().setBlockedGesturalNavigation(blocked, mSysUiState);
         }
     }
 
