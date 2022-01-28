@@ -1328,43 +1328,46 @@ public class EdgeBackGestureHandler implements PluginListener<NavigationEdgeBack
             default:
                 break;
             case 1: // Voice search
-                CustomUtils.launchVoiceSearch(mContext);
+                Utils.launchVoiceSearch(mContext);
                 break;
             case 2: // Camera
-                CustomUtils.launchCamera(mContext);
+                Utils.launchCamera(mContext);
                 break;
             case 3: // Flashlight
-                CustomUtils.toggleCameraFlash();
+                Utils.toggleCameraFlash();
                 break;
             case 4: // Application
                 launchApp(mContext, mIsOnLeftEdge, isVertical);
                 break;
             case 5: // Volume panel
-                CustomUtils.toggleVolumePanel(mContext);
+                Utils.toggleVolumePanel(mContext);
                 break;
             case 6: // Screen off
-                CustomUtils.switchScreenOff(mContext);
+                Utils.switchScreenOff(mContext);
                 break;
             case 7: // Screenshot
-                CustomUtils.takeScreenshot(true);
+                Utils.takeScreenshot(true);
                 break;
             case 8: // Notification panel
-                CustomUtils.toggleNotifications();
+                Utils.toggleNotifications();
                 break;
             case 9: // QS panel
-                CustomUtils.toggleQsPanel();
+                Utils.toggleQsPanel();
                 break;
             case 10: // Clear notifications
-                CustomUtils.clearAllNotifications();
+                Utils.clearAllNotifications();
                 break;
             case 11: // Ringer modes
-                CustomUtils.toggleRingerModes(mContext);
+                Utils.toggleRingerModes(mContext);
                 break;
             case 12: // Kill app
-                CustomUtils.killForegroundApp();
+                Utils.killForegroundApp();
                 break;
             case 13: // Switch recent app
-                CustomUtils.switchToLastApp(mContext);
+                Utils.switchToLastApp(mContext);
+                break;
+            case 14: // Powermenu
+                Utils.showPowerMenu();
                 break;
         }
     }
