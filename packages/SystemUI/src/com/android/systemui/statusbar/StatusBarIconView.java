@@ -71,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 public class StatusBarIconView extends AnimatedImageView implements StatusIconDisplayable {
+
     public static final int NO_COLOR = 0;
 
     /**
@@ -185,7 +186,7 @@ public class StatusBarIconView extends AnimatedImageView implements StatusIconDi
     private Runnable mOnDismissListener;
     private boolean mIncreasedSize;
     private boolean mShowsConversation;
-    private boolean mNewIconStyle;
+    private static boolean mNewIconStyle;
     private boolean mShowNotificationCount;
 
     public StatusBarIconView(Context context, String slot, StatusBarNotification sbn) {
@@ -493,7 +494,7 @@ public class StatusBarIconView extends AnimatedImageView implements StatusIconDi
      * @return Drawable for this item, or null if the package or item could not
      *         be found
      */
-    private Drawable getIcon(Context sysuiContext,
+    public static Drawable getIcon(Context sysuiContext,
             Context context, StatusBarIcon statusBarIcon) {
         int userId = statusBarIcon.user.getIdentifier();
         if (userId == UserHandle.USER_ALL) {
@@ -718,11 +719,9 @@ public class StatusBarIconView extends AnimatedImageView implements StatusIconDi
     }
 
     private void initializeDecorColor() {
-        if (isNotification()) {
-            setDecorColor(getContext().getColor(mNightMode
-                    ? com.android.internal.R.color.notification_default_color_dark
-                    : com.android.internal.R.color.notification_default_color_light));
-        }
+        setDecorColor(getContext().getColor(mNightMode
+                ? com.android.internal.R.color.notification_default_color_dark
+                : com.android.internal.R.color.notification_default_color_light));
     }
 
     private void updateDecorColor() {
