@@ -28,6 +28,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.graphics.Rect;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.os.VibrationEffect;
@@ -138,6 +139,7 @@ public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPl
 
     private final WindowManager mWindowManager;
     private final VibratorHelper mVibratorHelper;
+    private int mEdgeHapticIntensity;
 
     /**
      * The paint the arrow is drawn with
@@ -235,7 +237,6 @@ public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPl
 
     private boolean mIsLongSwipeEnabled;
     private boolean mBackArrowVisibility;
-    private boolean mEdgeHapticEnabled;
 
     private DynamicAnimation.OnAnimationEndListener mSetGoneEndListener
             = new DynamicAnimation.OnAnimationEndListener() {
@@ -449,8 +450,8 @@ public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPl
     }
 
     @Override
-    public void setEdgeHapticEnabled(boolean edgeHapticEnabled) {
-        mEdgeHapticEnabled = edgeHapticEnabled;
+    public void setEdgeHapticIntensity(int edgeHapticIntensity) {
+        mEdgeHapticIntensity = edgeHapticIntensity;
     }
 
     @Override
@@ -680,10 +681,6 @@ public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPl
         mVelocityTracker.computeCurrentVelocity(1000);
         // Only do the extra translation if we're not already flinging
         boolean isSlow = Math.abs(mVelocityTracker.getXVelocity()) < 500;
-        if (mEdgeHapticEnabled && (isSlow
-                || SystemClock.uptimeMillis() - mVibrationTime >= GESTURE_DURATION_FOR_CLICK_MS)) {
-            mVibratorHelper.vibrate(VibrationEffect.EFFECT_CLICK);
-        }
 
         // Let's also snap the angle a bit
         if (mAngleOffset > -4) {
@@ -780,10 +777,7 @@ public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPl
         // Apply a haptic on drag slop passed
         if (!mDragSlopPassed && touchTranslation > mSwipeTriggerThreshold) {
             mDragSlopPassed = true;
-            if (mEdgeHapticEnabled) {
-                mVibratorHelper.vibrate(VibrationEffect.EFFECT_TICK);
-                mVibrationTime = SystemClock.uptimeMillis();
-            }
+            triggerVibration();
 
             // Let's show the arrow and animate it in!
             mDisappearAmount = 0.0f;
@@ -938,9 +932,7 @@ public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPl
     private void setTriggerLongSwipe(boolean triggerLongSwipe, boolean animated) {
         if (mTriggerLongSwipe != triggerLongSwipe) {
             mTriggerLongSwipe = triggerLongSwipe;
-            if (mEdgeHapticEnabled) {
-                mVibratorHelper.vibrate(VibrationEffect.EFFECT_DOUBLE_CLICK);
-            }
+            triggerLongSwipeVibration();
             mAngleAnimation.cancel();
             updateAngle(animated);
             // Whenever the trigger back state changes the existing translation animation should be
@@ -948,6 +940,44 @@ public class NavigationBarEdgePanel extends View implements NavigationEdgeBackPl
             mTranslationAnimation.cancel();
             mBackCallback.setTriggerLongSwipe(mTriggerLongSwipe);
         }
+    }
+
+    private void triggerLongSwipeVibration() {
+        if (mVibratorHelper == null || mEdgeHapticIntensity == 0) {
+            return;
+        }
+        AsyncTask.execute(
+                    () -> mVibratorHelper.vibrate(VibrationEffect.EFFECT_HEAVY_CLICK));
+
+    }
+
+    private void triggerVibration() {
+        if (mVibratorHelper == null || mEdgeHapticIntensity == 0) {
+            return;
+        }
+            VibrationEffect effect;
+            switch (mEdgeHapticIntensity) {
+                case 1:
+                    effect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TEXTURE_TICK);
+                    break;
+                case 2:
+                    effect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK);
+                    break;
+                case 3:
+                    effect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK);
+                    break;
+                case 4:
+                    effect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK);
+                    break;
+                case 5:
+                    effect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK);
+                    break;
+                default:
+                    effect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK);
+                    break;
+            }
+
+        AsyncTask.execute(() -> mVibratorHelper.vibrate(effect));
     }
 
     private void updateAngle(boolean animated) {
