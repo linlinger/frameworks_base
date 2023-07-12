@@ -20,6 +20,7 @@ import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Point
+import android.os.AsyncTask
 import android.os.Handler
 import android.os.SystemClock
 import android.os.VibrationEffect
@@ -74,15 +75,6 @@ private const val POP_ON_COMMITTED_VELOCITY = 3f
 private const val POP_ON_ENTRY_TO_ACTIVE_VELOCITY = 4.5f
 private const val POP_ON_INACTIVE_TO_ACTIVE_VELOCITY = 4.7f
 private const val POP_ON_INACTIVE_VELOCITY = -1.5f
-
-internal val VIBRATE_ACTIVATED_EFFECT =
-        VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK)
-
-internal val VIBRATE_DOUBLE_ACTIVATED_EFFECT =
-        VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK)
-
-internal val VIBRATE_DEACTIVATED_EFFECT =
-        VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK)
 
 private const val DEBUG = false
 
@@ -170,6 +162,11 @@ class BackPanelController internal constructor(
     private val elapsedTimeSinceEntry
         get() = SystemClock.uptimeMillis() - gestureEntryTime
 
+    private var mEdgeHapticIntensity = 0
+    private var longSwipeThreshold = 0f
+    private var triggerLongSwipe = false
+    private var isLongSwipeEnabled = false
+    private var backArrowVisibility = false
 
     private var pastThresholdWhileEntryOrInactiveTime = 0L
     private var entryToActiveDelay = 0F
@@ -180,6 +177,16 @@ class BackPanelController internal constructor(
         )
     }
 
+    private val vibrationEffectsMap = mapOf(
+        1 to VibrationEffect.createPredefined(VibrationEffect.EFFECT_TEXTURE_TICK),
+        2 to VibrationEffect.createPredefined(VibrationEffect.EFFECT_TICK),
+        3 to VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK),
+        4 to VibrationEffect.createPredefined(VibrationEffect.EFFECT_DOUBLE_CLICK),
+        5 to VibrationEffect.createPredefined(VibrationEffect.EFFECT_HEAVY_CLICK)
+    )
+
+    private val fallbackVibEffect = VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK);
+
     // Whether the current gesture has moved a sufficiently large amount,
     // so that we can unambiguously start showing the ENTRY animation
     private var hasPassedDragSlop = false
@@ -188,14 +195,6 @@ class BackPanelController internal constructor(
     private var minFlingDistance = 0
 
     private val failsafeRunnable = Runnable { onFailsafe() }
-
-    private var longSwipeThreshold = 0f
-    private var triggerLongSwipe = false
-    private var isLongSwipeEnabled = false
-
-    private var backArrowVisibility = false
-
-    private var edgeHapticEnabled = false
 
     internal enum class GestureState {
         /* Arrow is off the screen and invisible */
@@ -695,14 +694,9 @@ class BackPanelController internal constructor(
         backArrowVisibility = enabled
     }
 
-    override fun setEdgeHapticEnabled(enabled: Boolean) {
-        edgeHapticEnabled = enabled
-    }
-
     private fun setTriggerLongSwipe(enabled: Boolean) {
         if (triggerLongSwipe != enabled) {
             triggerLongSwipe = enabled
-            if (edgeHapticEnabled) vibratorHelper.vibrate(VIBRATE_DOUBLE_ACTIVATED_EFFECT)
             updateRestingArrowDimens()
             // Whenever the trigger back state changes
             // the existing translation animation should be cancelled
@@ -969,10 +963,9 @@ class BackPanelController internal constructor(
                 previousXTranslationOnActiveOffset = previousXTranslation
                 updateRestingArrowDimens()
                 vibratorHelper.cancel()
-                if (edgeHapticEnabled) 
-                    mainHandler.postDelayed(10L) {
-                        vibratorHelper.vibrate(VIBRATE_ACTIVATED_EFFECT)
-                    }
+                mainHandler.postDelayed(10L) {
+                    triggerVibration()
+                }
                 val popVelocity = if (previousState == GestureState.INACTIVE) {
                     POP_ON_INACTIVE_TO_ACTIVE_VELOCITY
                 } else {
@@ -993,7 +986,7 @@ class BackPanelController internal constructor(
 
                 mView.popOffEdge(POP_ON_INACTIVE_VELOCITY)
 
-                if (edgeHapticEnabled) vibratorHelper.vibrate(VIBRATE_DEACTIVATED_EFFECT)
+                triggerVibration()
                 updateRestingArrowDimens()
             }
             GestureState.FLUNG -> {
@@ -1030,6 +1023,21 @@ class BackPanelController internal constructor(
                 mainHandler.postDelayed(10L) { vibratorHelper.cancel() }
             }
         }
+    }
+
+    override fun setEdgeHapticIntensity(edgeHapticIntensity: Int) {
+        mEdgeHapticIntensity = edgeHapticIntensity
+    }
+
+    private fun triggerVibration() {
+        if (vibratorHelper == null || mEdgeHapticIntensity == 0) {
+            return
+        }
+
+        val effect = vibrationEffectsMap[mEdgeHapticIntensity]
+            ?: fallbackVibEffect
+
+        AsyncTask.execute { vibratorHelper.vibrate(effect) }
     }
 
     private fun convertVelocityToAnimationFactor(
