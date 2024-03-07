@@ -172,7 +172,6 @@ public class CommandQueue extends IStatusBar.Stub implements
     private static final int MSG_LOCK_TASK_MODE_CHANGED = 75 << MSG_SHIFT;
     private static final int MSG_CONFIRM_IMMERSIVE_PROMPT = 77 << MSG_SHIFT;
     private static final int MSG_IMMERSIVE_CHANGED = 78 << MSG_SHIFT;
-    private static final int MSG_SET_BLOCKED_GESTURAL_NAVIGATION = 79 << MSG_SHIFT;
     private static final int MSG_SCREEN_PINNING_STATE_CHANGED      = 80 << MSG_SHIFT;
     private static final int MSG_LEFT_IN_LANDSCAPE_STATE_CHANGED   = 81 << MSG_SHIFT;
 
@@ -515,8 +514,6 @@ public class CommandQueue extends IStatusBar.Stub implements
          * @see IStatusBar#immersiveModeChanged
          */
         default void immersiveModeChanged(int rootDisplayAreaId, boolean isImmersiveMode) {}
-
-        default void setBlockedGesturalNavigation(boolean blocked) {}
 
         default void screenPinningStateChanged(boolean enabled) {}
 
@@ -1386,16 +1383,6 @@ public class CommandQueue extends IStatusBar.Stub implements
     }
 
     @Override
-    public void setBlockedGesturalNavigation(boolean blocked) {
-        synchronized (mLock) {
-            if (mHandler.hasMessages(MSG_SET_BLOCKED_GESTURAL_NAVIGATION)) {
-                mHandler.removeMessages(MSG_SET_BLOCKED_GESTURAL_NAVIGATION);
-            }
-            mHandler.obtainMessage(MSG_SET_BLOCKED_GESTURAL_NAVIGATION, blocked).sendToTarget();
-        }
-    }
-
-    @Override
     public void screenPinningStateChanged(boolean enabled) {
         synchronized (mLock) {
             mHandler.removeMessages(MSG_SCREEN_PINNING_STATE_CHANGED);
@@ -1891,9 +1878,6 @@ public class CommandQueue extends IStatusBar.Stub implements
                     for (int i = 0; i < mCallbacks.size(); i++) {
                         mCallbacks.get(i).immersiveModeChanged(rootDisplayAreaId, isImmersiveMode);
                     }
-                    break;
-                case MSG_SET_BLOCKED_GESTURAL_NAVIGATION:
-                    mCallbacks.forEach(cb -> cb.setBlockedGesturalNavigation((Boolean) msg.obj));
                     break;
                 case MSG_SCREEN_PINNING_STATE_CHANGED:
                     for (int i = 0; i < mCallbacks.size(); i++) {

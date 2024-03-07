@@ -19,11 +19,10 @@ package com.android.systemui.navigationbar.gestural;
 import android.animation.ArgbEvaluator;
 import android.annotation.ColorInt;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
-import android.os.UserHandle;
-import android.provider.Settings;
 import android.util.AttributeSet;
 import android.view.ContextThemeWrapper;
 import android.view.View;
@@ -37,7 +36,7 @@ public class NavigationHandle extends View implements ButtonInterface {
     private final Paint mPaint = new Paint();
     private @ColorInt final int mLightColor;
     private @ColorInt final int mDarkColor;
-    protected float mRadius;
+    protected final float mRadius;
     protected final float mBottom;
     private boolean mRequiresInvalidate;
 
@@ -47,7 +46,9 @@ public class NavigationHandle extends View implements ButtonInterface {
 
     public NavigationHandle(Context context, AttributeSet attr) {
         super(context, attr);
-        mBottom = getResources().getDimension(R.dimen.navigation_handle_bottom);
+        final Resources res = context.getResources();
+        mRadius = res.getDimension(R.dimen.navigation_handle_radius);
+        mBottom = res.getDimension(R.dimen.navigation_handle_bottom);
 
         final int dualToneDarkTheme = Utils.getThemeAttr(context, R.attr.darkIconTheme);
         final int dualToneLightTheme = Utils.getThemeAttr(context, R.attr.lightIconTheme);
@@ -74,29 +75,6 @@ public class NavigationHandle extends View implements ButtonInterface {
 
         // Draw that bar
         int navHeight = getHeight();
-        int radiusType = Settings.System.getIntForUser(getContext().getContentResolver(),
-            Settings.System.GESTURE_NAVBAR_RADIUS, 3, UserHandle.USER_CURRENT);
-        switch (radiusType) {
-            case 0:
-                mRadius = getResources().getDimensionPixelSize(R.dimen.navigation_handle_radius1);
-                break;
-            case 1:
-                mRadius = getResources().getDimensionPixelSize(R.dimen.navigation_handle_radius2);
-                break;
-            case 2:
-                mRadius = getResources().getDimensionPixelSize(R.dimen.navigation_handle_radius3);
-                break;
-            case 3:
-            default:
-                mRadius = getResources().getDimensionPixelSize(R.dimen.navigation_handle_radius);
-                break;
-            case 4:
-                mRadius = getResources().getDimensionPixelSize(R.dimen.navigation_handle_radius4);
-                break;
-            case 5:
-                mRadius = getResources().getDimensionPixelSize(R.dimen.navigation_handle_radius5);
-                break;
-        }
         float height = mRadius * 2;
         int width = getWidth();
         float y = (navHeight - mBottom - height);

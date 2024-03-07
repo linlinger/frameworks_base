@@ -236,8 +236,5 @@ interface IStatusBarService
      */
     void startAssist(in Bundle args);
 
-    /** Used to block or unblock usage of gestural navigation. */
-    void setBlockedGesturalNavigation(boolean blocked);
-
     void screenPinningStateChanged(boolean enabled);
 }

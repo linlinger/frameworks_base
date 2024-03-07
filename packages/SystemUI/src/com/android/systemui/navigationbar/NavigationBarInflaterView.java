@@ -24,7 +24,6 @@ import static com.android.systemui.shared.recents.utilities.Utilities.isLargeScr
 
 import android.annotation.Nullable;
 import android.app.ActivityManager;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.om.IOverlayManager;
 import android.content.res.Configuration;
@@ -104,8 +103,6 @@ public class NavigationBarInflaterView extends FrameLayout implements TunerServi
             "com.custom.overlay.systemui.gestural.hidden";
     private static final String GESTURE_NAVBAR_LENGTH_MODE =
             "system:" + Settings.System.GESTURE_NAVBAR_LENGTH_MODE;
-    private static final String GESTURE_NAVBAR_RADIUS =
-            "system:" + Settings.System.GESTURE_NAVBAR_RADIUS;
     private static final String ENABLE_TASKBAR =
             "lineagesystem:" + LineageSettings.System.ENABLE_TASKBAR;
 
@@ -215,7 +212,6 @@ public class NavigationBarInflaterView extends FrameLayout implements TunerServi
         Dependency.get(TunerService.class).addTunable(this, KEY_NAVIGATION_HINT);
         Dependency.get(TunerService.class).addTunable(this, NAVBAR_LAYOUT_VIEWS);
         Dependency.get(TunerService.class).addTunable(this, GESTURE_NAVBAR_LENGTH_MODE);
-        Dependency.get(TunerService.class).addTunable(this, GESTURE_NAVBAR_RADIUS);
         Dependency.get(TunerService.class).addTunable(this, ENABLE_TASKBAR);
     }
 
@@ -240,8 +236,6 @@ public class NavigationBarInflaterView extends FrameLayout implements TunerServi
             onLikelyDefaultLayoutChange(true);
         } else if (GESTURE_NAVBAR_LENGTH_MODE.equals(key)) {
             mHomeHandleWidthMode = TunerService.parseInteger(newValue, 1);
-            onLikelyDefaultLayoutChange(true);
-        } else if (GESTURE_NAVBAR_RADIUS.equals(key)) {
             onLikelyDefaultLayoutChange(true);
         } else if (ENABLE_TASKBAR.equals(key)) {
             mIsTaskbarEnabled =
